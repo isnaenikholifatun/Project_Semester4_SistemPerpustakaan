@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Buku;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreBukuRequest;
+use App\Http\Requests\UpdateBukuRequest;
 
 
 
@@ -40,9 +42,22 @@ class BukuController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBukuRequest $request)
     {
-        //
+        try {
+            // Create buku baru dengan validated data
+            Buku::create($request->validated());
+            
+            // Redirect dengan success message
+            return redirect()->route('buku.index')
+                            ->with('success', 'Buku berhasil ditambahkan!');
+                            
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Gagal menambahkan buku: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -63,12 +78,27 @@ class BukuController extends Controller
         return view('buku.edit', compact('buku'));
     }
 
-    /**
+     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateBukuRequest $request, string $id)
     {
-        //
+        try {
+            $buku = Buku::findOrFail($id);
+            
+            // Update buku dengan validated data
+            $buku->update($request->validated());
+            
+            // Redirect dengan success message
+            return redirect()->route('buku.show', $buku->id)
+                            ->with('success', 'Buku berhasil diupdate!');
+                            
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Gagal mengupdate buku: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -76,8 +106,24 @@ class BukuController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $buku = Buku::findOrFail($id);
+            $judulBuku = $buku->judul;
+            
+            // Delete buku
+            $buku->delete();
+            
+            // Redirect dengan success message
+            return redirect()->route('buku.index')
+                            ->with('success', "Buku '{$judulBuku}' berhasil dihapus!");
+                            
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                            ->with('error', 'Gagal menghapus buku: ' . $e->getMessage());
+        }
     }
+    
 public function search(Request $request)
 {
     $query = Buku::query();

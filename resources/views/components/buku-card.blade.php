@@ -98,19 +98,27 @@
 
                         <a href="{{ route('buku.show', $buku->id) }}"
                            class="btn btn-sm btn-info text-white">
-
                             <i class="bi bi-eye"></i>
                             Detail
-
                         </a>
 
                         <a href="{{ route('buku.edit', $buku->id) }}"
                            class="btn btn-sm btn-warning">
-
                             <i class="bi bi-pencil"></i>
                             Edit
-
                         </a>
+
+                        {{-- Delete Button --}}
+                        <form action="{{ route('buku.destroy', $buku->id) }}"
+                              method="POST"
+                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus buku {{ $buku->judul }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger w-100">
+                                <i class="bi bi-trash"></i>
+                                Hapus
+                            </button>
+                        </form>
 
                     </div>
 
