@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Buku;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreBukuRequest;
 use App\Http\Requests\UpdateBukuRequest;
+use Illuminate\Http\Request;
 
 
 
@@ -43,22 +43,22 @@ class BukuController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(StoreBukuRequest $request)
-    {
-        try {
-            // Create buku baru dengan validated data
-            Buku::create($request->validated());
-            
-            // Redirect dengan success message
-            return redirect()->route('buku.index')
-                            ->with('success', 'Buku berhasil ditambahkan!');
-                            
-        } catch (\Exception $e) {
-            // Redirect dengan error message jika gagal
-            return redirect()->back()
-                            ->withInput()
-                            ->with('error', 'Gagal menambahkan buku: ' . $e->getMessage());
-        }
+{
+    try {
+        // Create buku baru dengan validated data
+        Buku::create($request->validated());
+        
+        // Redirect dengan success message
+        return redirect()->route('buku.index')
+                         ->with('success', 'Buku berhasil ditambahkan!');
+                         
+    } catch (\Exception $e) {
+        // Redirect dengan error message jika gagal
+        return redirect()->back()
+                         ->withInput()
+                         ->with('error', 'Gagal menambahkan buku: ' . $e->getMessage());
     }
+}
 
     /**
      * Display the specified resource.
@@ -78,7 +78,7 @@ class BukuController extends Controller
         return view('buku.edit', compact('buku'));
     }
 
-     /**
+    /**
      * Update the specified resource in storage.
      */
     public function update(UpdateBukuRequest $request, string $id)
@@ -100,30 +100,45 @@ class BukuController extends Controller
                             ->with('error', 'Gagal mengupdate buku: ' . $e->getMessage());
         }
     }
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
-    {
-        try {
-            $buku = Buku::findOrFail($id);
-            $judulBuku = $buku->judul;
-            
-            // Delete buku
-            $buku->delete();
-            
-            // Redirect dengan success message
-            return redirect()->route('buku.index')
-                            ->with('success', "Buku '{$judulBuku}' berhasil dihapus!");
-                            
-        } catch (\Exception $e) {
-            // Redirect dengan error message jika gagal
-            return redirect()->back()
-                            ->with('error', 'Gagal menghapus buku: ' . $e->getMessage());
-        }
+{
+    try {
+        $buku = Buku::findOrFail($id);
+        $judulBuku = $buku->judul;
+        
+        // Delete buku
+        $buku->delete();
+        
+        // Redirect dengan success message
+        return redirect()->route('buku.index')
+                         ->with('success', "Buku '{$judulBuku}' berhasil dihapus!");
+                         
+    } catch (\Exception $e) {
+        // Redirect dengan error message jika gagal
+        return redirect()->back()
+                         ->with('error', 'Gagal menghapus buku: ' . $e->getMessage());
     }
-    
+}
+
+public function bulkDelete(Request $request)
+{
+    $ids = $request->selected_books;
+
+    if (!$ids) {
+        return redirect()->route('buku.index')
+            ->with('error', 'Pilih minimal satu buku.');
+    }
+
+    Buku::whereIn('id', $ids)->delete();
+
+    return redirect()->route('buku.index')
+        ->with('success', count($ids) . ' buku berhasil dihapus!');
+}
+
+
 public function search(Request $request)
 {
     $query = Buku::query();
@@ -182,5 +197,53 @@ public function search(Request $request)
         'bukuHabis'
     ));
 }
-    
+
+public function export()
+{
+    $bukus = Buku::all();
+
+    $filename = 'buku_' . date('Y-m-d_His') . '.csv';
+
+    $headers = [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    ];
+
+    $callback = function () use ($bukus) {
+
+        $file = fopen('php://output', 'w');
+
+        // Header CSV
+        fputcsv($file, [
+            'Kode Buku',
+            'Judul',
+            'Kategori',
+            'Pengarang',
+            'Penerbit',
+            'Tahun',
+            'ISBN',
+            'Harga',
+            'Stok'
+        ]);
+
+        // Data Buku
+        foreach ($bukus as $buku) {
+            fputcsv($file, [
+                $buku->kode_buku,
+                $buku->judul,
+                $buku->kategori,
+                $buku->pengarang,
+                $buku->penerbit,
+                $buku->tahun_terbit,
+                $buku->isbn,
+                $buku->harga,
+                $buku->stok,
+            ]);
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 }

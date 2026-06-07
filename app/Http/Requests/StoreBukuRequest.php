@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Requests;
-
+use App\Rules\KodeBukuFormat;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,25 +21,67 @@ class StoreBukuRequest extends FormRequest
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-    {
-        return [
-            'kode_buku' => 'required|string|max:20|unique:buku,kode_buku',
-            'judul' => 'required|string|max:200',
-            'kategori' => 'required|in:Programming,Database,Web Design,Networking,Data Science',
-            'pengarang' => 'required|string|max:100',
-            'penerbit' => 'required|string|max:100',
-            'tahun_terbit' => 'required|integer|min:1900|max:' . date('Y'),
-            'isbn' => 'nullable|string|max:20',
-            'harga' => 'required|numeric|min:0',
-            'stok' => 'required|integer|min:0',
-            'deskripsi' => 'nullable|string',
-            'bahasa' => 'required|string|max:20',
-        ];
-    }
+{
+    return [
+        'kode_buku' => [
+            'required',
+            'string',
+            'max:20',
+            'unique:buku,kode_buku',
+            new KodeBukuFormat,
+        ],
 
-    /**
-     * Get custom error messages.
-     */
+        'judul' => 'required|string|max:200',
+
+        'kategori' => 'required|in:Programming,Database,Web Design,Networking,Data Science',
+
+        'pengarang' => 'required|string|max:100',
+
+        'penerbit' => 'required|string|max:100',
+
+        'tahun_terbit' => 'required|integer|min:1900|max:' . date('Y'),
+
+        'isbn' => 'nullable|string|max:20',
+
+        'harga' => 'required|numeric|min:0',
+
+        'stok' => [
+            'required',
+            'integer',
+            'min:0',
+
+            function ($attribute, $value, $fail) {
+
+                if (
+                    request('tahun_terbit') < 2000 &&
+                    $value > 5
+                ) {
+                    $fail('Untuk buku terbit sebelum tahun 2000, stok maksimal 5 buku.');
+                }
+
+            }
+        ],
+
+        'deskripsi' => 'nullable|string',
+
+        'bahasa' => [
+            'required',
+            'string',
+            'max:20',
+
+            function ($attribute, $value, $fail) {
+
+                if (
+                    request('kategori') == 'Programming' &&
+                    $value != 'Inggris'
+                ) {
+                    $fail('Buku kategori Programming wajib menggunakan bahasa Inggris.');
+                }
+
+            }
+        ],
+    ];
+}
     public function messages(): array
     {
         return [
@@ -66,7 +108,7 @@ class StoreBukuRequest extends FormRequest
             'bahasa.required' => 'Bahasa wajib diisi.',
         ];
     }
-    
+ 
     /**
      * Get custom attribute names.
      */

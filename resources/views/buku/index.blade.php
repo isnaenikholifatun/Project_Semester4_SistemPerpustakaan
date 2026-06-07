@@ -10,10 +10,18 @@
         Daftar Buku
     </h1>
 
+    <div class="d-flex justify-content-end gap-2 mb-3">
     <a href="{{ route('buku.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle"></i>
         Tambah Buku
     </a>
+    <a href="{{ route('buku.export') }}" class="btn btn-success">
+        <i class="bi bi-download"></i>
+        Export CSV
+    </a>
+
+    </div>
+
 </div>
 
 {{-- Statistik Cards --}}
@@ -217,6 +225,29 @@
 
     </div>
 </div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form action="{{ route('buku.bulk-delete') }}" method="POST">
+    @csrf
+
+<div class="form-check">
+        <input type="checkbox"
+               id="select-all"
+               class="form-check-input">
+
+        <label class="form-check-label">
+            Pilih Semua
+        </label>
+    </div>
+
+    <button type="submit"
+            class="btn btn-danger">
+        <i class="bi bi-trash"></i>
+        Hapus Terpilih
+    </button>
+
+</div>
+
 {{-- Daftar Buku --}}
 @forelse ($bukus as $buku)
 
@@ -246,47 +277,9 @@
 
     </div>
 
-@endif
 
-    {{-- Delete Button dengan SweetAlert --}}
-    <form action="{{ route('buku.destroy', $buku->id) }}" 
-        method="POST" 
-        class="d-inline delete-form">
-        @csrf
-        @method('DELETE')
-        <button type="button" class="btn btn-sm btn-danger w-100 btn-delete" 
-                data-judul="{{ $buku->judul }}">
-            <i class="bi bi-trash"></i> Hapus
-        </button>
-    </form>
-    
-    @push('scripts')
-    <script>
-        // SweetAlert confirmation untuk delete
-        document.querySelectorAll('.btn-delete').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                const judul = this.getAttribute('data-judul');
-                
-                Swal.fire({
-                    title: 'Konfirmasi Hapus',
-                    text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-        });
-    </script>
-@endpush
+@endif
+</form>
 
 @push('scripts')
 <script>
@@ -302,5 +295,17 @@
     });
 </script>
 @endpush
+
+@push('scripts')
+<script>
+    document.getElementById('select-all').addEventListener('change', function () {
+    document.querySelectorAll('.book-checkbox').forEach(function (checkbox) {
+        checkbox.checked = document.getElementById('select-all').checked;
+    });
+});
+</script>
+@endpush
+
+
 
 @endsection

@@ -2,6 +2,16 @@
 
     <div class="card-body">
 
+    <div class="form-check mb-2">
+        <input type="checkbox"
+           name="selected_books[]"
+           value="{{ $buku->id }}"
+           class="form-check-input book-checkbox">
+        <label class="form-check-label">
+            Pilih
+        </label>
+    </div>
+
         <div class="row align-items-center">
 
             {{-- Icon --}}
@@ -19,6 +29,8 @@
                         @elseif($buku->kategori == 'Networking') bg-warning
                         @else bg-danger
                         @endif">
+
+
 
                         {{ $buku->kategori }}
 
@@ -108,17 +120,60 @@
                             Edit
                         </a>
 
-                        {{-- Delete Button --}}
-                        <form action="{{ route('buku.destroy', $buku->id) }}"
-                              method="POST"
-                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus buku {{ $buku->judul }}?')">
+                        {{-- Delete Button dengan SweetAlert --}}
+                        <form action="{{ route('buku.destroy', $buku->id) }}" 
+                            method="POST" 
+                            class="d-inline delete-form">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger w-100">
-                                <i class="bi bi-trash"></i>
-                                Hapus
+                            <button type="button" class="btn btn-sm btn-danger w-100 btn-delete" 
+                                    data-judul="{{ $buku->judul }}">
+                                <i class="bi bi-trash"></i> Hapus
                             </button>
                         </form>
+                        
+                        @push('scripts')
+                        <script>
+                            // SweetAlert confirmation untuk delete
+                            document.querySelectorAll('.btn-delete').forEach(button => {
+                                button.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    const form = this.closest('form');
+                                    const judul = this.getAttribute('data-judul');
+                                    
+                                    Swal.fire({
+                                        title: 'Konfirmasi Hapus',
+                                        text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#d33',
+                                        cancelButtonColor: '#3085d6',
+                                        confirmButtonText: 'Ya, Hapus!',
+                                        cancelButtonText: 'Batal'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            form.submit();
+                                        }
+                                    });
+                                });
+                            });
+                        </script>
+                        @endpush
+
+                    @push('scripts')
+                    <script>
+                        // Loading state saat submit form
+                        document.querySelectorAll('form').forEach(form => {
+                            form.addEventListener('submit', function() {
+                                const submitBtn = this.querySelector('button[type="submit"]');
+                                if (submitBtn && !this.classList.contains('delete-form')) {
+                                    submitBtn.disabled = true;
+                                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+                                }
+                            });
+                        });
+                    </script>
+                    @endpush
 
                     </div>
 

@@ -113,23 +113,26 @@
                         <i class="bi bi-info-circle"></i> Tidak ada deskripsi untuk buku ini
                     </p>
                 @endif
-                
+
                 {{-- Timestamps --}}
-                <hr>
-                <div class="row text-muted small">
-                    <div class="col-md-6">
-                        <i class="bi bi-clock"></i> 
-                        Ditambahkan: {{ $buku->created_at->format('d M Y H:i') }}
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <i class="bi bi-clock-history"></i> 
-                        Terakhir Update: {{ $buku->updated_at->format('d M Y H:i') }}
-                    </div>
-                </div>
+<hr>
+<div class="row text-muted small">
+    <div class="col-md-6">
+        <i class="bi bi-clock"></i> 
+        Ditambahkan: 
+        {{ $buku->created_at ? $buku->created_at->format('d M Y H:i') : '-' }}
+    </div>
+
+    <div class="col-md-6 text-end">
+        <i class="bi bi-clock-history"></i> 
+        Terakhir Update: 
+        {{ $buku->updated_at ? $buku->updated_at->format('d M Y H:i') : '-' }}
+    </div>
+</div>
             </div>
         </div>
     </div>
-    
+                
     {{-- Kolom Kanan: Actions & Info Tambahan --}}
     <div class="col-md-4">
         {{-- Card Actions --}}
@@ -157,16 +160,61 @@
                 <a href="{{ route('buku.index') }}" class="btn btn-outline-primary">
                     <i class="bi bi-arrow-left"></i> Kembali
                 </a>
-                
-                <hr>
-                
-                <form action="{{ route('buku.destroy', $buku->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus buku ini?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger w-100">
-                        <i class="bi bi-trash"></i> Hapus Buku
-                    </button>
-                </form>
+
+                {{-- Delete Button dengan SweetAlert --}}
+                        <form action="{{ route('buku.destroy', $buku->id) }}" 
+                            method="POST" 
+                            class="d-inline delete-form">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" class="btn btn-sm btn-danger w-100 btn-delete" 
+                                    data-judul="{{ $buku->judul }}">
+                                <i class="bi bi-trash"></i> Hapus
+                            </button>
+                        </form>
+                        
+                        @push('scripts')
+                        <script>
+                            // SweetAlert confirmation untuk delete
+                            document.querySelectorAll('.btn-delete').forEach(button => {
+                                button.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    const form = this.closest('form');
+                                    const judul = this.getAttribute('data-judul');
+                                    
+                                    Swal.fire({
+                                        title: 'Konfirmasi Hapus',
+                                        text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#d33',
+                                        cancelButtonColor: '#3085d6',
+                                        confirmButtonText: 'Ya, Hapus!',
+                                        cancelButtonText: 'Batal'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            form.submit();
+                                        }
+                                    });
+                                });
+                            });
+                        </script>
+                        @endpush
+
+                    @push('scripts')
+                    <script>
+                        // Loading state saat submit form
+                        document.querySelectorAll('form').forEach(form => {
+                            form.addEventListener('submit', function() {
+                                const submitBtn = this.querySelector('button[type="submit"]');
+                                if (submitBtn && !this.classList.contains('delete-form')) {
+                                    submitBtn.disabled = true;
+                                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+                                }
+                            });
+                        });
+                    </script>
+                    @endpush
             </div>
         </div>
         
@@ -235,60 +283,4 @@
         </div>
     </div>
 </div>
-
-{{-- Delete Button dengan SweetAlert --}}
-<form action="{{ route('buku.destroy', $buku->id) }}" 
-      method="POST" 
-      class="d-inline delete-form">
-    @csrf
-    @method('DELETE')
-    <button type="button" class="btn btn-sm btn-danger w-100 btn-delete" 
-            data-judul="{{ $buku->judul }}">
-        <i class="bi bi-trash"></i> Hapus
-    </button>
-</form>
- 
-@push('scripts')
-<script>
-    // SweetAlert confirmation untuk delete
-    document.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const form = this.closest('form');
-            const judul = this.getAttribute('data-judul');
-            
-            Swal.fire({
-                title: 'Konfirmasi Hapus',
-                text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-</script>
-@endpush
-
-@push('scripts')
-<script>
-    // Loading state saat submit form
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function() {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn && !this.classList.contains('delete-form')) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
-            }
-        });
-    });
-</script>
-@endpush
-
 @endsection
