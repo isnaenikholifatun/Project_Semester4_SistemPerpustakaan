@@ -11,6 +11,7 @@ Route::get('/', function () {
     return view('home');
 })->name('home');
 
+// === ROUTE UNTUK BUKU ===
 Route::get('/buku/search', [BukuController::class, 'search'])
     ->name('buku.search');
 
@@ -25,8 +26,16 @@ Route::get('/buku/export', [BukuController::class, 'export'])
     
 Route::resource('buku', BukuController::class);
 
+// === ROUTE UNTUK ANGGOTA ===
+Route::get('/anggota/export', [AnggotaController::class, 'export'])
+    ->name('anggota.export');
+
+Route::get('/anggota/search', [AnggotaController::class, 'search'])
+    ->name('anggota.search');
+
 Route::resource('anggota', AnggotaController::class);
 
+// === ROUTE DASHBOARD ===
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
     
