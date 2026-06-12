@@ -112,16 +112,31 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
+                                    {{-- Tombol Detail --}}
                                     <a href="{{ route('anggota.show', $anggota->id) }}" 
                                        class="btn btn-sm btn-info text-white"
                                        title="Detail">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    
+                                    {{-- Tombol Edit --}}
                                     <a href="{{ route('anggota.edit', $anggota->id) }}" 
                                        class="btn btn-sm btn-warning"
                                        title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
+
+                                    {{-- Tombol Hapus --}}
+                                    <form action="{{ route('anggota.destroy', $anggota->id) }}" 
+                                          method="POST" 
+                                          class="d-inline"
+                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus anggota {{ $anggota->nama }}?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

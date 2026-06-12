@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
  
 use Illuminate\Http\Request;
 use App\Models\Anggota;
- 
+use App\Http\Requests\StoreAnggotaRequest; 
+use App\Http\Requests\UpdateAnggotaRequest;
+
 class AnggotaController extends Controller
 {
     /**
@@ -37,9 +39,81 @@ class AnggotaController extends Controller
     }
  
     // Methods lainnya akan diimplementasi di pertemuan 13
-    public function create() { }
-    public function store(Request $request) { }
-    public function edit(string $id) { }
-    public function update(Request $request, string $id) { }
-    public function destroy(string $id) { }
+    public function create() 
+    { 
+        return view('anggota.create');
+    }
+
+    public function edit(string $id)
+    { 
+        $anggota = Anggota::findOrFail($id);
+        return view('anggota.edit', compact('anggota'));   
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreAnggotaRequest $request) 
+    { 
+        try {
+            // Create anggota baru dengan validated data
+            Anggota::create($request->validated());
+                    
+            // Redirect dengan success message
+            return redirect()->route('anggota.index')
+                             ->with('success', 'Anggota berhasil ditambahkan!');
+                                 
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                             ->withInput()
+                             ->with('error', 'Gagal menambahkan anggota: ' . $e->getMessage());
+        }
+    }
+
+    /**
+    * Update the specified resource in storage.
+    */
+    public function update(UpdateAnggotaRequest $request, string $id)
+    {
+        try {
+            $anggota = Anggota::findOrFail($id);
+            
+            // Update anggota dengan validated data
+            $anggota->update($request->validated());
+            
+            // Redirect dengan success message
+            return redirect()->route('anggota.show', $anggota->id)
+                            ->with('success', 'Data anggota berhasil diupdate!');
+                            
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Gagal mengupdate anggota: ' . $e->getMessage());
+        }
+    }
+
+    /**
+    * Remove the specified resource from storage.
+    */
+    public function destroy(string $id)
+    {
+        try {
+            $anggota = Anggota::findOrFail($id);
+            $namaAnggota = $anggota->nama;
+            
+            // Delete anggota
+            $anggota->delete();
+            
+            // Redirect dengan success message
+            return redirect()->route('anggota.index')
+                            ->with('success', "Anggota '{$namaAnggota}' berhasil dihapus!");
+                            
+        } catch (\Exception $e) {
+            // Redirect dengan error message jika gagal
+            return redirect()->back()
+                            ->with('error', 'Gagal menghapus anggota: ' . $e->getMessage());
+        }
+    }
 }
