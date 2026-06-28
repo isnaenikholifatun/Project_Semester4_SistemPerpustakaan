@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Anggota;
 use App\Http\Requests\StoreAnggotaRequest; 
 use App\Http\Requests\UpdateAnggotaRequest;
-use App\Exports\AnggotaExport;
-use Maatwebsite\Excel\Facades\Excel;
+
 
 class AnggotaController extends Controller
 {
@@ -32,11 +31,53 @@ class AnggotaController extends Controller
     }
 
     /**
-     * Export data anggota to Excel.
+     * Export data anggota to CSV (Tanpa Package Tambahan).
      */
     public function export()
     {
-        return Excel::download(new AnggotaExport, 'anggota_' . date('Y-m-d_His') . '.xlsx');
+        $fileName = 'anggota_' . date('Y-m-d_His') . '.csv';
+        $anggotas = Anggota::all(); // Mengambil semua data anggota
+
+        $headers = array(
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        );
+
+        $columns = array('Kode', 'Nama', 'Email', 'Telepon', 'Alamat', 'Tanggal Lahir', 'Jenis Kelamin', 'Pekerjaan', 'Status', 'Tanggal Daftar');
+
+        $callback = function() use($anggotas, $columns) {
+            $file = fopen('php://output', 'w');
+            
+            // Tulis baris header (judul kolom)
+            fputcsv($file, $columns);
+
+            // Tulis data anggota baris demi baris
+            foreach ($anggotas as $anggota) {
+                $row['Kode']           = $anggota->kode_anggota;
+                $row['Nama']           = $anggota->nama;
+                $row['Email']          = $anggota->email;
+                $row['Telepon']        = $anggota->telepon;
+                $row['Alamat']         = $anggota->alamat;
+                $row['Tanggal Lahir']  = $anggota->tanggal_lahir;
+                $row['Jenis Kelamin']  = $anggota->jenis_kelamin;
+                $row['Pekerjaan']      = $anggota->pekerjaan;
+                $row['Status']         = $anggota->status;
+                $row['Tanggal Daftar'] = $anggota->tanggal_daftar;
+
+                fputcsv($file, array(
+                    $row['Kode'], $row['Nama'], $row['Email'], $row['Telepon'], 
+                    $row['Alamat'], $row['Tanggal Lahir'], $row['Jenis Kelamin'], 
+                    $row['Pekerjaan'], $row['Status'], $row['Tanggal Daftar']
+                ));
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**

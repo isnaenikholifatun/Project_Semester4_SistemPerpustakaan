@@ -89,4 +89,10 @@ public function scopeTerbaru($query)
     return $query->where('tahun_terbit', '>=', 2024);
 }
 
+//SCOPE: transaksis 
+public function transaksis()
+{
+    return $this->hasMany(Transaksi::class);
+}
+
 }

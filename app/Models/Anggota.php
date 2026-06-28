@@ -113,4 +113,12 @@ class Anggota extends Model
             ->whereYear('tanggal_daftar', Carbon::now()->year);
     }
 
+    /**
+     * Relasi ke model Transaksi (Satu Anggota bisa memiliki banyak Transaksi)
+     */
+    public function transaksis()
+    {
+        return $this->hasMany(Transaksi::class);
+    }
+
 } 
