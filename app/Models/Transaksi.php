@@ -4,7 +4,6 @@ namespace App\Models;
  
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
  
 class Transaksi extends Model
 {
@@ -44,25 +43,25 @@ class Transaksi extends Model
     public function getDurasiPeminjamanAttribute()
     {
         if ($this->tanggal_dikembalikan) {
-            return $this->tanggal_pinjam->diffInDays($this->tanggal_dikembalikan);
+            return $this->tanggal_pinjam->startOfDay()->diffInDays($this->tanggal_dikembalikan->startOfDay());
         }
-        return $this->tanggal_pinjam->diffInDays(now());
+        return $this->tanggal_pinjam->startOfDay()->diffInDays(\Carbon\Carbon::now()->startOfDay());
     }
  
     // Accessor untuk cek terlambat (hari)
     public function getTerlambatAttribute()
     {
         if ($this->status == 'Dikembalikan') {
-            if ($this->tanggal_dikembalikan > $this->tanggal_kembali) {
-                return $this->tanggal_kembali->diffInDays($this->tanggal_dikembalikan);
+            if ($this->tanggal_dikembalikan && $this->tanggal_dikembalikan->startOfDay()->gt($this->tanggal_kembali->startOfDay())) {
+                return $this->tanggal_kembali->startOfDay()->diffInDays($this->tanggal_dikembalikan->startOfDay());
             }
             return 0;
         }
-        
-        if (now() > $this->tanggal_kembali) {
-            return $this->tanggal_kembali->diffInDays(now());
+         
+        if (\Carbon\Carbon::now()->startOfDay()->gt($this->tanggal_kembali->startOfDay())) {
+            return $this->tanggal_kembali->startOfDay()->diffInDays(\Carbon\Carbon::now()->startOfDay());
         }
-        
+         
         return 0;
     }
  

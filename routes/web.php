@@ -14,9 +14,35 @@ Route::get('/', function () {
 // Grup route yang butuh login (Auth)
 Route::middleware(['auth'])->group(function () {
     
-    // Dashboard
+    // Dashboard Mengirim data keterlambatan secara dinamis + Statistik Utama
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $hariIni = \Carbon\Carbon::now()->startOfDay();
+        
+        // 1. Ambil kembali data statistik utama agar kotak di dashboard terisi
+        $totalBuku = \App\Models\Buku::count();
+        $totalAnggota = \App\Models\Anggota::count();
+        $totalDipinjam = \App\Models\Transaksi::where('status', 'Dipinjam')->count();
+        $transaksiHariIni = \App\Models\Transaksi::whereDate('created_at', \Carbon\Carbon::today())->count();
+        $transaksiTerbaru = \App\Models\Transaksi::with(['anggota', 'buku'])->latest()->take(5)->get();
+
+        // 2. Data keterlambatan
+        $transaksiTerlambat = \App\Models\Transaksi::with(['anggota', 'buku'])
+            ->where('status', 'Dipinjam')
+            ->whereDate('tanggal_kembali', '<', $hariIni->format('Y-m-d'))
+            ->get();
+
+        $jumlahTerlambat = $transaksiTerlambat->count();
+
+        // 3. Kirim SEMUA variabel ke halaman dashboard
+        return view('dashboard', compact(
+            'totalBuku', 
+            'totalAnggota', 
+            'totalDipinjam', 
+            'transaksiHariIni', 
+            'transaksiTerbaru',
+            'jumlahTerlambat', 
+            'transaksiTerlambat'
+        ));
     })->name('dashboard');
 
     // Profile (Breeze)
@@ -36,7 +62,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/anggota/search', [AnggotaController::class, 'search'])->name('anggota.search');
     Route::resource('anggota', AnggotaController::class);
 
-    // Transaksi
+    // Transaksi 
+    Route::get('/transaksi/laporan', [TransaksiController::class, 'laporan'])->name('transaksi.laporan');
+    Route::get('/transaksi/laporan/pdf', [TransaksiController::class, 'laporanPdf'])->name('transaksi.laporan.pdf');
+    
     Route::resource('transaksi', TransaksiController::class);
     Route::put('/transaksi/{id}/kembalikan', [TransaksiController::class, 'kembalikan'])->name('transaksi.kembalikan');
 });

@@ -1,162 +1,173 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard Perpustakaan') }}
-        </h2>
-    </x-slot>
- 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+
+                <h1 class="fs-3 fw-bold text-gray-800 mb-4">Dashboard Perpustakaan</h1>
+
+                {{-- Statistik Utama (Sekarang Menjadi 5 Card Sejajar) --}}
+                <div class="row mb-4 row-cols-1 row-cols-md-5 g-3">
+                    <div class="col">
+                        <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3 h-100">
+                            <div class="bg-primary text-white p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                <i class="bi bi-book"></i>
                             </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Total Buku</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ \App\Models\Buku::count() }}</p>
+                            <div>
+                                <h6 class="text-muted small mb-1">Total Buku</h6>
+                                <h2 class="fw-bold m-0 fs-3">{{ $totalBuku }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3 h-100">
+                            <div class="bg-success text-white p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-1">Total Anggota</h6>
+                                <h2 class="fw-bold m-0 fs-3">{{ $totalAnggota }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3 h-100">
+                            <div class="bg-warning text-white p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-1">Dipinjam</h6>
+                                <h2 class="fw-bold m-0 fs-3">{{ $totalDipinjam }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3 h-100">
+                            <div class="bg-info text-white p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-1">Transaksi Hari Ini</h6>
+                                <h2 class="fw-bold m-0 fs-3">{{ $transaksiHariIni }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- CARD BARU: BUKU TERLAMBAT (IKUT DESAIN MINIMALIS BAWAAN) --}}
+                    <div class="col">
+                        <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3 h-100">
+                            <div class="bg-danger text-white p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-1">Terlambat</h6>
+                                <h2 class="fw-bold m-0 fs-3 text-danger">{{ $jumlahTerlambat ?? 0 }}</h2>
                             </div>
                         </div>
                     </div>
                 </div>
- 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
-                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Total Anggota</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ \App\Models\Anggota::count() }}</p>
-                            </div>
+
+                {{-- ALERT NOTIFIKASI KETERLAMBATAN & LIST ANGGOTA --}}
+                @if(isset($jumlahTerlambat) && $jumlahTerlambat > 0)
+                    <div class="alert alert-danger shadow-sm border-start border-danger border-4 mb-4" role="alert">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-exclamation-triangle-fill text-danger me-2 fs-4"></i>
+                            <h5 class="alert-heading fw-bold m-0 text-danger">Peringatan Keterlambatan Pengembalian!</h5>
                         </div>
-                    </div>
-                </div>
- 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
-                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Dipinjam</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ \App\Models\Transaksi::where('status', 'Dipinjam')->count() }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
- 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
-                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Transaksi Hari Ini</p>
-                                <p class="text-2xl font-semibold text-gray-900">{{ \App\Models\Transaksi::whereDate('created_at', today())->count() }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
- 
-            <!-- Quick Actions -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold mb-4">Aksi Cepat</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <a href="{{ route('buku.create') }}" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
-                            <svg class="h-8 w-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            <span class="font-medium text-blue-900">Tambah Buku</span>
-                        </a>
+                        <p class="mb-2">Saat ini terdapat <strong>{{ $jumlahTerlambat }} transaksi</strong> yang belum dikembalikan dan telah melewati batas waktu.</p>
+                        <hr class="my-2 text-danger">
                         
-                        <a href="{{ route('anggota.create') }}" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition">
-                            <svg class="h-8 w-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                            </svg>
-                            <span class="font-medium text-green-900">Tambah Anggota</span>
-                        </a>
-                        
-                        <a href="{{ route('transaksi.create') }}" class="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition">
-                            <svg class="h-8 w-8 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                            </svg>
-                            <span class="font-medium text-yellow-900">Pinjam Buku</span>
-                        </a>
-                        
-                        <a href="{{ route('transaksi.index') }}" class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition">
-                            <svg class="h-8 w-8 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            <span class="font-medium text-purple-900">Lihat Transaksi</span>
-                        </a>
+                        {{-- List Detail Anggota yang Terlambat dengan Tambahan Selisih Hari --}}
+                        <ul class="mb-0 ps-3 text-dark small">
+                            @foreach($transaksiTerlambat as $terlambat)
+                                @php
+                                    $tglKembali = \Carbon\Carbon::parse($terlambat->tanggal_kembali)->startOfDay();
+                                    $hariIni = \Carbon\Carbon::now()->startOfDay();
+                                    $selisihHari = $tglKembali->diffInDays($hariIni);
+                                @endphp
+                                <li class="mb-1">
+                                    <strong>{{ $terlambat->anggota->nama }}</strong> meminjam buku 
+                                    <span class="text-primary">"{{ $terlambat->buku->judul ?? 'Buku dihapus' }}"</span> 
+                                    (Batas Kembali: {{ $tglKembali->format('d M Y') }}) 
+                                    <span class="badge bg-danger ms-1">Terlambat {{ $selisihHari }} Hari</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                {{-- Aksi Cepat --}}
+                <div class="mb-4">
+                    <h5 class="fw-bold text-gray-700 mb-3">Aksi Cepat</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{{ route('buku.create') }}" class="card border-0 shadow-sm p-3 text-decoration-none bg-primary bg-opacity-10 hover-shadow transition-all">
+                                <div class="d-flex align-items-center gap-2 text-primary fw-bold">
+                                    <i class="bi bi-plus-lg"></i> Tambah Buku
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ route('anggota.create') }}" class="card border-0 shadow-sm p-3 text-decoration-none bg-success bg-opacity-10 hover-shadow transition-all">
+                                <div class="d-flex align-items-center gap-2 text-success fw-bold">
+                                    <i class="bi bi-person-plus"></i> Tambah Anggota
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ route('transaksi.create') }}" class="card border-0 shadow-sm p-3 text-decoration-none bg-warning bg-opacity-10 hover-shadow transition-all">
+                                <div class="d-flex align-items-center gap-2 text-warning-dark fw-bold">
+                                    <i class="bi bi-arrow-left-right"></i> Pinjam Buku
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ route('transaksi.index') }}" class="card border-0 shadow-sm p-3 text-decoration-none bg-purple bg-opacity-10 hover-shadow transition-all">
+                                <div class="d-flex align-items-center gap-2 text-purple fw-bold">
+                                    <i class="bi bi-list-task"></i> Lihat Transaksi
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
- 
-            <!-- Recent Transactions -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold mb-4">Transaksi Terbaru</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+
+                {{-- Transaksi Terbaru --}}
+                <div>
+                    <h5 class="fw-bold text-gray-700 mb-3">Transaksi Terbaru</h5>
+                    <div class="table-responsive bg-white rounded shadow-sm">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anggota</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Buku</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Pinjam</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th>KODE</th>
+                                    <th>ANGGOTA</th>
+                                    <th>BUKU</th>
+                                    <th>TANGGAL PINJAM</th>
+                                    <th>STATUS</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse(\App\Models\Transaksi::with(['anggota', 'buku'])->latest()->take(5)->get() as $transaksi)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {{ $transaksi->kode_transaksi }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $transaksi->anggota->nama }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $transaksi->buku->judul }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $transaksi->tanggal_pinjam->format('d M Y') }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $transaksi->status == 'Dipinjam' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }}">
-                                            {{ $transaksi->status }}
-                                        </span>
-                                    </td>
-                                </tr>
+                            <tbody>
+                                @forelse($transaksiTerbaru as $terbaru)
+                                    <tr>
+                                        <td><code>{{ $terbaru->kode_transaksi }}</code></td>
+                                        <td>{{ $terbaru->anggota->nama ?? '-' }}</td>
+                                        <td>{{ $terbaru->buku->judul ?? '-' }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($terbaru->tanggal_pinjam)->format('d M Y') }}</td>
+                                        <td>
+                                            @if($terbaru->status == 'Dipinjam')
+                                                <span class="badge bg-warning text-dark px-2.5 py-1.5 rounded">Dipinjam</span>
+                                            @else
+                                                <span class="badge bg-success px-2.5 py-1.5 rounded">Dikembalikan</span>
+                                            @endif
+                                        </td>
+                                    </tr>
                                 @empty
-                                <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                                        Belum ada transaksi
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">Belum ada transaksi terbaru</td>
+                                    </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
