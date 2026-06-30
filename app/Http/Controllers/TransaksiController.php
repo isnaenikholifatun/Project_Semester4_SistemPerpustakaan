@@ -1,14 +1,14 @@
 <?php
- 
+
 namespace App\Http\Controllers;
- 
+
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
 use App\Models\Buku;
 use App\Models\Anggota;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
- 
+
 class TransaksiController extends Controller
 {
     /**
@@ -22,21 +22,18 @@ class TransaksiController extends Controller
          
         return view('transaksi.index', compact('transaksis'));
     }
- 
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        // Get only anggota aktif
         $anggotas = Anggota::where('status', 'Aktif')->orderBy('nama')->get();
-         
-        // Get only buku yang tersedia (stok > 0)
         $bukus = Buku::where('stok', '>', 0)->orderBy('judul')->get();
          
         return view('transaksi.create', compact('anggotas', 'bukus'));
     }
- 
+
     /**
      * Store a newly created resource in storage.
      */
@@ -55,19 +52,14 @@ class TransaksiController extends Controller
          
         try {
             DB::transaction(function () use ($request) {
-                // 1. Check stok buku
                 $buku = Buku::findOrFail($request->buku_id);
                 if ($buku->stok <= 0) {
                     throw new \Exception('Stok buku habis!');
                 }
                  
-                // 2. Generate kode transaksi
                 $kodeTransaksi = $this->generateKodeTransaksi();
-                 
-                // 3. Calculate tanggal kembali (7 hari dari tanggal pinjam)
                 $tanggalKembali = Carbon::parse($request->tanggal_pinjam)->addDays(7);
                  
-                // 4. Create transaksi
                 Transaksi::create([
                     'kode_transaksi' => $kodeTransaksi,
                     'anggota_id' => $request->anggota_id,
@@ -78,7 +70,6 @@ class TransaksiController extends Controller
                     'keterangan' => $request->keterangan,
                 ]);
                  
-                // 5. Update stok buku (kurang 1)
                 $buku->decrement('stok');
             });
              
@@ -91,7 +82,7 @@ class TransaksiController extends Controller
                              ->with('error', 'Gagal membuat transaksi: ' . $e->getMessage());
         }
     }
- 
+
     /**
      * Display the specified resource.
      */
@@ -100,7 +91,7 @@ class TransaksiController extends Controller
         $transaksi = Transaksi::with(['anggota', 'buku'])->findOrFail($id);
         return view('transaksi.show', compact('transaksi'));
     }
- 
+
     /**
      * Kembalikan buku (update status transaksi).
      */
@@ -110,12 +101,10 @@ class TransaksiController extends Controller
             DB::transaction(function () use ($id) {
                 $transaksi = Transaksi::findOrFail($id);
                 
-                // Validasi mencegah pengembalian ganda
                 if ($transaksi->status === 'Dikembalikan') {
                     throw new \Exception('Buku ini sudah dikembalikan sebelumnya.');
                 }
                 
-                // 1. Update transaksi
                 $tanggalDikembalikan = now();
                 $denda = $this->hitungDenda($transaksi, $tanggalDikembalikan);
                 
@@ -125,7 +114,6 @@ class TransaksiController extends Controller
                     'denda' => $denda,
                 ]);
                 
-                // 2. Update stok buku (tambah 1)
                 $transaksi->buku->increment('stok');
             });
             
@@ -137,58 +125,50 @@ class TransaksiController extends Controller
                              ->with('error', 'Gagal mengembalikan buku: ' . $e->getMessage());
         }
     }
- 
+
     /**
      * Menampilkan halaman laporan dengan filter.
      */
     public function laporan(Request $request)
     {
-        // Ambil semua data anggota untuk dropdown filter
         $anggotas = Anggota::orderBy('nama')->get();
-
-        // Query dasar transaksi dengan relasi
         $query = Transaksi::with(['anggota', 'buku']);
 
-        // 1. Filter Range Tanggal (Berdasarkan tanggal pinjam)
         if ($request->filled('dari_tanggal') && $request->filled('sampai_tanggal')) {
             $query->whereBetween('tanggal_pinjam', [$request->dari_tanggal, $request->sampai_tanggal]);
         }
 
-        // 2. Filter Status (Dipinjam / Dikembalikan)
         if ($request->filled('status') && $request->status !== 'Semua') {
             $query->where('status', $request->status);
         }
 
-        // 3. Filter Anggota
         if ($request->filled('anggota_id')) {
             $query->where('anggota_id', $request->anggota_id);
         }
 
-        // Eksekusi data ter-filter
         $transaksis = $query->latest()->get();
-
-        // Hitung total ringkasan untuk spesifikasi tampilan laporan
         $totalTransaksi = $transaksis->count();
         
-        // Perhitungan total denda dinamis (menggabungkan denda tertulis dan denda estimasi berjalan)
+        // REVISI TOTAL DENDA BERSIH: Otomatis sinkron membaca logika dari Model & file Blade Anda
         $totalDenda = $transaksis->sum(function ($transaksi) {
             if ($transaksi->status == 'Dikembalikan') {
-                return $transaksi->denda;
+                return abs($transaksi->denda);
             }
-            return $transaksi->terlambat * 5000;
+            
+            // Jika masih 'Dipinjam', panggil properti 'terlambat' yang ada di model Anda
+            return ($transaksi->terlambat > 0) ? ($transaksi->terlambat * 5000) : 0;
         });
 
         return view('transaksi.laporan', compact('transaksis', 'anggotas', 'totalTransaksi', 'totalDenda'));
     }
 
     /**
-     * Cetak laporan langsung lewat Browser tanpa library tambahan.
+     * Cetak laporan langsung lewat Browser.
      */
     public function laporanPdf(Request $request)
     {
         $query = Transaksi::with(['anggota', 'buku']);
 
-        // Terapkan filter yang sama persis untuk cetakan
         if ($request->filled('dari_tanggal') && $request->filled('sampai_tanggal')) {
             $query->whereBetween('tanggal_pinjam', [$request->dari_tanggal, $request->sampai_tanggal]);
         }
@@ -202,12 +182,12 @@ class TransaksiController extends Controller
         $transaksis = $query->latest()->get();
         $totalTransaksi = $transaksis->count();
         
-        // Perhitungan total denda dinamis untuk halaman PDF
+        // REVISI TOTAL DENDA BERSIH UNTUK PDF
         $totalDenda = $transaksis->sum(function ($transaksi) {
             if ($transaksi->status == 'Dikembalikan') {
-                return $transaksi->denda;
+                return abs($transaksi->denda);
             }
-            return $transaksi->terlambat * 5000;
+            return ($transaksi->terlambat > 0) ? ($transaksi->terlambat * 5000) : 0;
         });
 
         return view('transaksi.laporan_pdf', compact('transaksis', 'totalTransaksi', 'totalDenda'));
@@ -219,17 +199,17 @@ class TransaksiController extends Controller
     private function generateKodeTransaksi()
     {
         $lastTransaksi = Transaksi::latest()->first();
-         
+          
         if ($lastTransaksi) {
             $lastNumber = intval(substr($lastTransaksi->kode_transaksi, -3));
             $newNumber = $lastNumber + 1;
         } else {
             $newNumber = 1;
         }
-         
+          
         return 'TRX-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
     }
- 
+
     /**
      * Hitung denda keterlambatan.
      */
@@ -238,11 +218,8 @@ class TransaksiController extends Controller
         $batasKembali = Carbon::parse($transaksi->tanggal_kembali)->startOfDay();
         $hariIni = Carbon::parse($tanggalDikembalikan)->startOfDay();
         
-        // Hanya hitung jika tanggal pengembalian melewati batas kembali
         if ($hariIni->gt($batasKembali)) {
             $hariTerlambat = $hariIni->diffInDays($batasKembali);
-            
-            // Denda Rp 5.000 per hari hanya jika terlambat
             return $hariTerlambat * 5000;
         }
         

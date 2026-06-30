@@ -73,7 +73,7 @@
                     <div class="col-md-6">
                         <div class="card border-danger bg-light">
                             <div class="card-body">
-                                <small class="text-muted text-uppercase d-block fw-semibold mb-1" style="font-size: 11px;">Total Denda</small>
+                                <small class="text-muted text-uppercase d-block fw-semibold mb-1" style="font-size: 11px;">Total Denda Bersih</small>
                                 <h2 class="m-0 fw-bold text-danger">Rp {{ number_format($totalDenda, 0, ',', '.') }}</h2>
                             </div>
                         </div>
@@ -112,11 +112,12 @@
                                             {!! $transaksi->status_badge !!}
                                         </td>
                                         
-                                        {{-- PERHITUNGAN DENDA DINAMIS --}}
+                                        {{-- PERBAIKAN PERHITUNGAN DENDA TANPA MINUS --}}
                                         <td class="text-end fw-semibold">
                                             @if($transaksi->status == 'Dikembalikan')
-                                                <span class="{{ $transaksi->denda > 0 ? 'text-danger' : 'text-muted' }}">
-                                                    Rp {{ number_format($transaksi->denda, 0, ',', '.') }}
+                                                {{-- Jika denda hasil abs() lebih dari 0, teks berwarna merah (text-danger) --}}
+                                                <span class="{{ abs($transaksi->denda) > 0 ? 'text-danger' : 'text-muted' }}">
+                                                    Rp {{ number_format(abs($transaksi->denda), 0, ',', '.') }}
                                                 </span>
                                             @else
                                                 @if($transaksi->terlambat > 0)

@@ -73,7 +73,8 @@
                     <td class="p-0 fw-bold" style="border:none !important;">{{ $totalTransaksi }} Eksemplar</td>
                 </tr>
                 <tr>
-                    <td class="p-0 pe-3 fw-bold" style="border:none !important;">Total Akumulasi Denda</td>
+                    {{-- PERBAIKAN: Label diubah menjadi Total Denda Bersih --}}
+                    <td class="p-0 pe-3 fw-bold" style="border:none !important;">Total Denda Bersih</td>
                     <td class="p-0 pe-2" style="border:none !important;">:</td>
                     <td class="p-0 fw-bold" style="border:none !important;">Rp {{ number_format($totalDenda, 0, ',', '.') }}</td>
                 </tr>
@@ -104,10 +105,10 @@
                     <td class="text-center">{{ \Carbon\Carbon::parse($transaksi->tanggal_kembali)->format('d/m/Y') }}</td>
                     <td class="text-center">{{ $transaksi->status }}</td>
                     
-                    {{-- PERHITUNGAN DENDA DINAMIS PADA CETAKAN PDF --}}
+                    {{-- PERBAIKAN: Memastikan denda baris tabel dicetak angka positif mutlak (tanpa minus) --}}
                     <td class="text-end">
                         @if($transaksi->status == 'Dikembalikan')
-                            Rp {{ number_format($transaksi->denda, 0, ',', '.') }}
+                            Rp {{ number_format(abs($transaksi->denda), 0, ',', '.') }}
                         @else
                             @if($transaksi->terlambat > 0)
                                 Rp {{ number_format($transaksi->terlambat * 5000, 0, ',', '.') }}
