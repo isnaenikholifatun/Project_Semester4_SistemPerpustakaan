@@ -1,4 +1,4 @@
-<?php
+\<?php
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BukuController;
@@ -44,6 +44,10 @@ Route::middleware(['auth'])->group(function () {
             'transaksiTerlambat'
         ));
     })->name('dashboard');
+
+    Route::get('/home', function () {
+        return redirect()->route('dashboard');
+    })->name('home');
 
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

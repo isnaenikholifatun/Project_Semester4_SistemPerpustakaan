@@ -5,8 +5,8 @@
 
                 <h1 class="fs-3 fw-bold text-gray-800 mb-4">Dashboard Perpustakaan</h1>
 
-                {{-- Statistik Utama (Sekarang Menjadi 5 Card Sejajar) --}}
-                <div class="row mb-4 row-cols-1 row-cols-md-5 g-3">
+                {{-- 1. Statistik Utama (4 Card Atas Berjajar) --}}
+                <div class="row mb-4 row-cols-1 row-cols-md-4 g-3">
                     <div class="col">
                         <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3 h-100">
                             <div class="bg-primary text-white p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
@@ -51,50 +51,65 @@
                             </div>
                         </div>
                     </div>
-                    {{-- CARD BARU: BUKU TERLAMBAT (IKUT DESAIN MINIMALIS BAWAAN) --}}
-                    <div class="col">
-                        <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3 h-100">
-                            <div class="bg-danger text-white p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-muted small mb-1">Terlambat</h6>
-                                <h2 class="fw-bold m-0 fs-3 text-danger">{{ $jumlahTerlambat ?? 0 }}</h2>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                {{-- ALERT NOTIFIKASI KETERLAMBATAN & LIST ANGGOTA --}}
+                {{-- 2. BARIS KETERLAMBATAN: Peringatan Menyatu di dalam Card Terlambat --}}
                 @if(isset($jumlahTerlambat) && $jumlahTerlambat > 0)
-                    <div class="alert alert-danger shadow-sm border-start border-danger border-4 mb-4" role="alert">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-exclamation-triangle-fill text-danger me-2 fs-4"></i>
-                            <h5 class="alert-heading fw-bold m-0 text-danger">Peringatan Keterlambatan Pengembalian!</h5>
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            {{-- Card Utama Terlambat (Warna Dasar Merah Lembut dengan Border Samping Merah Tegas) --}}
+                            <div class="card shadow-sm p-4 h-100" style="background-color: #fff5f5; border: 1px solid #f5c6cb; border-left: 5px solid #dc3545 !important; border-radius: 8px;">
+                                <div class="row align-items-start g-3">
+                                    
+                                    {{-- BAGIAN POJOK KIRI: Indikator Angka & Badge Terlambat --}}
+                                    <div class="col-md-3 d-flex align-items-center gap-3 border-end border-danger border-opacity-25 pe-3">
+                                        <div class="bg-danger text-white p-3 rounded-3 fs-3 d-flex align-items-center justify-content-center" style="width: 55px; height: 55px; flex-shrink: 0;">
+                                            <i class="bi bi-clock-history"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="text-muted small mb-1 text-uppercase fw-bold">Terlambat</h6>
+                                            <h2 class="fw-bold m-0 fs-2 text-danger">{{ $jumlahTerlambat }}</h2>
+                                        </div>
+                                    </div>
+
+                                    {{-- BAGIAN DALAM / KANAN: Isi Pesan Peringatan & List Anggota --}}
+                                    <div class="col-md-9 ps-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="bi bi-exclamation-triangle-fill text-danger me-2 fs-5"></i>
+                                            <h5 class="fw-bold m-0 text-danger">Peringatan Keterlambatan Pengembalian!</h5>
+                                        </div>
+                                        
+                                        <p class="mb-2 text-dark small">
+                                            Saat ini terdapat <strong>{{ $jumlahTerlambat }} transaksi</strong> yang belum dikembalikan dan telah melewati batas waktu.
+                                        </p>
+                                        
+                                        <hr class="my-2 text-danger opacity-25">
+                                        
+                                        {{-- List Anggota yang Terlambat --}}
+                                        <ul class="mb-0 ps-3 text-dark small" style="list-style-type: square;">
+                                            @foreach($transaksiTerlambat as $terlambat)
+                                                @php
+                                                    $tglKembali = \Carbon\Carbon::parse($terlambat->tanggal_kembali)->startOfDay();
+                                                    $hariIni = \Carbon\Carbon::now()->startOfDay();
+                                                    $selisihHari = $tglKembali->diffInDays($hariIni);
+                                                @endphp
+                                                <li class="mb-1">
+                                                    <strong>{{ $terlambat->anggota->nama }}</strong> meminjam buku 
+                                                    <span class="text-primary fw-medium">"{{ $terlambat->buku->judul ?? 'Buku dihapus' }}"</span> 
+                                                    (Batas Kembali: {{ $tglKembali->format('d M Y') }}) 
+                                                    <span class="badge bg-danger ms-1" style="font-size: 0.75rem;">Terlambat {{ $selisihHari }} Hari</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+
+                                </div>
+                            </div>
                         </div>
-                        <p class="mb-2">Saat ini terdapat <strong>{{ $jumlahTerlambat }} transaksi</strong> yang belum dikembalikan dan telah melewati batas waktu.</p>
-                        <hr class="my-2 text-danger">
-                        
-                        {{-- List Detail Anggota yang Terlambat dengan Tambahan Selisih Hari --}}
-                        <ul class="mb-0 ps-3 text-dark small">
-                            @foreach($transaksiTerlambat as $terlambat)
-                                @php
-                                    $tglKembali = \Carbon\Carbon::parse($terlambat->tanggal_kembali)->startOfDay();
-                                    $hariIni = \Carbon\Carbon::now()->startOfDay();
-                                    $selisihHari = $tglKembali->diffInDays($hariIni);
-                                @endphp
-                                <li class="mb-1">
-                                    <strong>{{ $terlambat->anggota->nama }}</strong> meminjam buku 
-                                    <span class="text-primary">"{{ $terlambat->buku->judul ?? 'Buku dihapus' }}"</span> 
-                                    (Batas Kembali: {{ $tglKembali->format('d M Y') }}) 
-                                    <span class="badge bg-danger ms-1">Terlambat {{ $selisihHari }} Hari</span>
-                                </li>
-                            @endforeach
-                        </ul>
                     </div>
                 @endif
 
-                {{-- Aksi Cepat --}}
+                {{-- 3. Aksi Cepat --}}
                 <div class="mb-4">
                     <h5 class="fw-bold text-gray-700 mb-3">Aksi Cepat</h5>
                     <div class="row g-3">
@@ -129,7 +144,7 @@
                     </div>
                 </div>
 
-                {{-- Transaksi Terbaru --}}
+                {{-- 4. Transaksi Terbaru --}}
                 <div>
                     <h5 class="fw-bold text-gray-700 mb-3">Transaksi Terbaru</h5>
                     <div class="table-responsive bg-white rounded shadow-sm">

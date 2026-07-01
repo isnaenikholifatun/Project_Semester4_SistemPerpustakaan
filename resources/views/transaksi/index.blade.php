@@ -37,88 +37,105 @@
                     </div>
                 @endif
                  
-                {{-- Statistik --}}
+                {{-- Statistik Card dengan Logo/Ikon Terbuka di Sisi Kanan --}}
                 <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card border-primary">
-                            <div class="card-body">
-                                <h6 class="text-muted">Total Transaksi</h6>
-                                <h2>{{ $transaksis->count() }}</h2>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="card border-primary h-100" style="border-radius: 6px;">
+                            <div class="card-body d-flex justify-content-between align-items-center p-3">
+                                <div>
+                                    <h6 class="text-muted mb-1 fw-medium">Total Transaksi</h6>
+                                    <h2 class="fw-bold m-0" style="font-size: 2rem;">{{ $transaksis->count() }}</h2>
+                                </div>
+                                <div>
+                                    <i class="bi bi-arrow-left-right text-primary" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card border-warning">
-                            <div class="card-body">
-                                <h6 class="text-muted">Sedang Dipinjam</h6>
-                                <h2>{{ $transaksis->where('status', 'Dipinjam')->count() }}</h2>
+
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="card border-warning h-100" style="border-radius: 6px;">
+                            <div class="card-body d-flex justify-content-between align-items-center p-3">
+                                <div>
+                                    <h6 class="text-muted mb-1 fw-medium">Sedang Dipinjam</h6>
+                                    <h2 class="fw-bold m-0" style="font-size: 2rem;">{{ $transaksis->where('status', 'Dipinjam')->count() }}</h2>
+                                </div>
+                                <div>
+                                    <i class="bi bi-clock-history text-warning" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-4">
-                        <div class="card border-success">
-                            <div class="card-body">
-                                <h6 class="text-muted">Sudah Dikembalikan</h6>
-                                <h2>{{ $transaksis->where('status', 'Dikembalikan')->count() }}</h2>
+                        <div class="card border-success h-100" style="border-radius: 6px;">
+                            <div class="card-body d-flex justify-content-between align-items-center p-3">
+                                <div>
+                                    <h6 class="text-muted mb-1 fw-medium">Sudah Dikembalikan</h6>
+                                    <h2 class="fw-bold m-0" style="font-size: 2rem;">{{ $transaksis->where('status', 'Dikembalikan')->count() }}</h2>
+                                </div>
+                                <div>
+                                    <i class="bi bi-check-circle text-success" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                  
                 {{-- Tabel Transaksi --}}
-                <div class="card">
-                    <div class="card-body">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>No</th>
+                                        <th class="px-3" width="60">No</th>
                                         <th>Kode Transaksi</th>
                                         <th>Anggota</th>
                                         <th>Buku</th>
                                         <th>Tanggal Pinjam</th>
                                         <th>Tanggal Kembali</th>
                                         <th>Status</th>
-                                        <th>Aksi</th>
+                                        <th width="100">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse($transaksis as $transaksi)
                                     <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td><code>{{ $transaksi->kode_transaksi }}</code></td>
+                                        <td class="px-3">{{ $loop->iteration }}</td>
+                                        <td><span class="text-danger fw-semibold">{{ $transaksi->kode_transaksi }}</span></td>
                                         <td>{{ $transaksi->anggota->nama }}</td>
                                         <td>{{ $transaksi->buku->judul }}</td>
                                         <td>{{ $transaksi->tanggal_pinjam->format('d M Y') }}</td>
                                         <td>{{ $transaksi->tanggal_kembali->format('d M Y') }}</td>
                                         
-                                        {{-- KOLOM STATUS (FIXED) --}}
+                                        {{-- KOLOM STATUS --}}
                                         <td>
                                             @if($transaksi->status == 'Dipinjam')
-                                                <span class="badge bg-warning text-dark px-2.5 py-1.5 rounded">Dipinjam</span>
+                                                <span class="badge bg-warning text-dark px-2.5 py-1.5 rounded" style="font-size: 0.8rem;">Dipinjam</span>
                                                 
                                                 {{-- Cek Keterlambatan Hari ini vs Tanggal Kembali --}}
                                                 @if(\Carbon\Carbon::now()->startOfDay()->gt(\Carbon\Carbon::parse($transaksi->tanggal_kembali)->startOfDay()))
-                                                    <span class="badge bg-danger d-block mt-1">
+                                                    <span class="badge bg-danger d-block mt-1 py-1" style="font-size: 0.75rem;">
                                                         Terlambat {{ \Carbon\Carbon::parse($transaksi->tanggal_kembali)->startOfDay()->diffInDays(\Carbon\Carbon::now()->startOfDay()) }} Hari
                                                     </span>
                                                 @endif
                                             @else
-                                                <span class="badge bg-success px-2.5 py-1.5 rounded">Dikembalikan</span>
+                                                <span class="badge bg-success px-2.5 py-1.5 rounded" style="font-size: 0.8rem;">Dikembalikan</span>
                                             @endif
                                         </td>
                                         
                                         <td>
                                             <a href="{{ route('transaksi.show', $transaksi->id) }}" 
-                                               class="btn btn-sm btn-info text-white">
+                                               class="btn btn-sm btn-info text-white d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                         </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="8" class="text-center text-muted">
-                                            Belum ada transaksi
+                                        <td colspan="8" class="text-center text-muted py-4">
+                                            <i class="bi bi-info-circle d-block fs-3 mb-2"></i> Belum ada transaksi
                                         </td>
                                     </tr>
                                     @endforelse

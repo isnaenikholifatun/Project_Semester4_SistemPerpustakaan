@@ -195,12 +195,15 @@
                                  
                                                     {{-- Tombol Hapus --}}
                                                     <form action="{{ route('anggota.destroy', $anggota->id) }}" 
-                                                          method="POST" 
-                                                          class="d-inline"
-                                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus anggota {{ $anggota->nama }}?')">
+                                                        method="POST" 
+                                                        class="d-inline m-0 p-0"
+                                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus anggota {{ $anggota->nama }}?')">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                                        <button type="submit" 
+                                                                class="btn btn-sm btn-danger d-inline-flex align-items-center justify-content-center" 
+                                                                style="width: 32px; height: 32px;"
+                                                                title="Hapus">
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </form>

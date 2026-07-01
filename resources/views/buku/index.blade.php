@@ -99,26 +99,26 @@
                             <form action="{{ route('buku.search') }}" method="GET">
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <input type="text" name="keyword" class="form-control" placeholder="Cari judul, pengarang, penerbit">
+                                        <input type="text" name="keyword" class="form-control" placeholder="Cari judul, pengarang, penerbit" value="{{ request('keyword') }}">
                                     </div>
                                     <div class="col-md-2">
                                         <select name="kategori" class="form-select">
                                             <option value="">Semua Kategori</option>
-                                            <option value="Programming">Programming</option>
-                                            <option value="Database">Database</option>
-                                            <option value="Web Design">Web Design</option>
-                                            <option value="Networking">Networking</option>
-                                            <option value="Data Science">Data Science</option>
+                                            <option value="Programming" {{ request('kategori') == 'Programming' ? 'selected' : '' }}>Programming</option>
+                                            <option value="Database" {{ request('kategori') == 'Database' ? 'selected' : '' }}>Database</option>
+                                            <option value="Web Design" {{ request('kategori') == 'Web Design' ? 'selected' : '' }}>Web Design</option>
+                                            <option value="Networking" {{ request('kategori') == 'Networking' ? 'selected' : '' }}>Networking</option>
+                                            <option value="Data Science" {{ request('kategori') == 'Data Science' ? 'selected' : '' }}>Data Science</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
-                                        <input type="number" name="tahun" class="form-control" placeholder="Tahun">
+                                        <input type="number" name="tahun" class="form-control" placeholder="Tahun" value="{{ request('tahun') }}">
                                     </div>
                                     <div class="col-md-2">
                                         <select name="ketersediaan" class="form-select">
                                             <option value="">Semua</option>
-                                            <option value="tersedia">Tersedia</option>
-                                            <option value="habis">Habis</option>
+                                            <option value="tersedia" {{ request('ketersediaan') == 'tersedia' ? 'selected' : '' }}>Tersedia</option>
+                                            <option value="habis" {{ request('ketersediaan') == 'habis' ? 'selected' : '' }}>Habis</option>
                                         </select>
                                     </div>
                                     <div class="col-md-3">
@@ -132,12 +132,13 @@
                     </div>
 
                     {{-- BULK DELETE FORM & DAFTAR BUKU --}}
-                    <form action="{{ route('buku.bulk-delete') }}" method="POST">
+                    {{-- DIUBAH: Ditambahkan konfirmasi onsubmit agar admin tidak tidak sengaja menghapus data --}}
+                    <form action="{{ route('buku.bulk-delete') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua buku yang dipilih?')">
                         @csrf
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="form-check">
                                 <input type="checkbox" id="select-all" class="form-check-input">
-                                <label class="form-check-label">Pilih Semua</label>
+                                <label class="form-check-label" for="select-all">Pilih Semua</label>
                             </div>
                             <button type="submit" class="btn btn-danger">
                                 <i class="bi bi-trash"></i> Hapus Terpilih
@@ -173,18 +174,22 @@
     {{-- SCRIPTS --}}
     @push('scripts')
     <script>
+        // Mencegah double click submission, kecuali untuk form bulk delete
         document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function() {
+            form.addEventListener('submit', function(e) {
                 const submitBtn = this.querySelector('button[type="submit"]');
-                if (submitBtn && !this.classList.contains('delete-form')) {
+                // Abaikan pembatasan spinner jika form tersebut adalah form hapus massal
+                if (submitBtn && !this.action.includes('bulk-delete')) {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
                 }
             });
         });
 
+        // PERBAIKAN UTAMA: Mencari elemen checkbox di dalam x-buku-card secara dinamis
         document.getElementById('select-all').addEventListener('change', function () {
-            document.querySelectorAll('.book-checkbox').forEach(function (checkbox) {
+            // Karena menggunakan komponen card, targetkan input checkbox bertipe array/nama massal
+            document.querySelectorAll('input[name="selected_books[]"]').forEach(function (checkbox) {
                 checkbox.checked = document.getElementById('select-all').checked;
             });
         });

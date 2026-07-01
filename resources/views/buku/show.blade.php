@@ -1,6 +1,8 @@
 <x-app-layout>
+    {{-- Memanggil library SweetAlert langsung di sini agar pasti aktif --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <x-slot name="header">
-        {{-- Memberikan padding horizontal agar teks header sejajar dengan konten bawah --}}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="h4 mb-0 text-gray-800">
                 {{ $buku->judul }}
@@ -8,7 +10,6 @@
         </div>
     </x-slot>
 
-    {{-- PEMBUNGKUS UTAMA: Menggunakan kontainer agar layout tidak mepet ke pinggir layar --}}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         
         {{-- Breadcrumb --}}
@@ -34,7 +35,6 @@
                         </h4>
                     </div>
                     <div class="card-body p-4">
-                        {{-- Judul --}}
                         <h2 class="mb-3 h3 fw-bold text-gray-800">{{ $buku->judul }}</h2>
                         
                         {{-- Badge Kategori --}}
@@ -129,7 +129,6 @@
                                 Ditambahkan: 
                                 {{ $buku->created_at ? $buku->created_at->format('d M Y H:i') : '-' }}
                             </div>
-
                             <div class="col-md-6 text-md-end">
                                 <i class="bi bi-clock-history"></i> 
                                 Terakhir Update: 
@@ -150,14 +149,16 @@
                         </h6>
                     </div>
                     <div class="card-body d-grid gap-2 p-3">
+                        {{-- 1. TOMBOL EDIT BUKU --}}
                         <a href="{{ route('buku.edit', $buku->id) }}" class="btn btn-warning py-2 text-dark fw-medium">
                             <i class="bi bi-pencil"></i> Edit Buku
                         </a>
                         
+                        {{-- 2. TOMBOL PINJAM BUKU (SUDAH DIAKTIFKAN KE ROUTE TRANSAKSI) --}}
                         @if ($buku->stok > 0)
-                            <button class="btn btn-success py-2 fw-medium">
+                            <a href="{{ route('transaksi.create', ['buku_id' => $buku->id]) }}" class="btn btn-success py-2 fw-medium">
                                 <i class="bi bi-cart-plus"></i> Pinjam Buku
-                            </button>
+                            </a>
                         @else
                             <button class="btn btn-secondary py-2" disabled>
                                 <i class="bi bi-x-circle"></i> Stok Habis
@@ -168,58 +169,15 @@
                             <i class="bi bi-arrow-left"></i> Kembali
                         </a>
 
-                        {{-- Delete Button dengan SweetAlert --}}
-                        <form action="{{ route('buku.destroy', $buku->id) }}" 
-                            method="POST" 
-                            class="d-inline delete-form">
+                        {{-- 3. TOMBOL HAPUS BUKU --}}
+                        <form action="{{ route('buku.destroy', $buku->id) }}" method="POST" id="form-hapus-buku" class="d-inline">
                             @csrf
                             @method('DELETE')
-                            <button type="button" class="btn btn-danger w-100 py-2 fw-medium btn-delete" 
-                                    data-judul="{{ $buku->judul }}">
+                            <button type="button" class="btn btn-danger w-100 py-2 fw-medium" 
+                                    onclick="konfirmasiHapus('{{ $buku->judul }}')">
                                 <i class="bi bi-trash"></i> Hapus Buku
                             </button>
                         </form>
-                        
-                        @push('scripts')
-                        <script>
-                            document.querySelectorAll('.btn-delete').forEach(button => {
-                                button.addEventListener('click', function(e) {
-                                    e.preventDefault();
-                                    const form = this.closest('form');
-                                    const judul = this.getAttribute('data-judul');
-                                    
-                                    Swal.fire({
-                                        title: 'Konfirmasi Hapus',
-                                        text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
-                                        icon: 'warning',
-                                        showCancelButton: true,
-                                        confirmButtonColor: '#d33',
-                                        cancelButtonColor: '#3085d6',
-                                        confirmButtonText: 'Ya, Hapus!',
-                                        cancelButtonText: 'Batal'
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            form.submit();
-                                        }
-                                    });
-                                });
-                            });
-                        </script>
-                        @endpush
-
-                        @push('scripts')
-                        <script>
-                            document.querySelectorAll('form').forEach(form => {
-                                form.addEventListener('submit', function() {
-                                    const submitBtn = this.querySelector('button[type="submit"]');
-                                    if (submitBtn && !this.classList.contains('delete-form')) {
-                                        submitBtn.disabled = true;
-                                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
-                                    }
-                                });
-                            });
-                        </script>
-                        @endpush
                     </div>
                 </div>
                 
@@ -263,9 +221,9 @@
                     <div class="card-body p-3">
                         @php
                             $bukuSerupa = App\Models\Buku::where('kategori', $buku->kategori)
-                                                          ->where('id', '!=', $buku->id)
-                                                          ->take(3)
-                                                          ->get();
+                                                         ->where('id', '!=', $buku->id)
+                                                         ->take(3)
+                                                         ->get();
                         @endphp
                         
                         @forelse ($bukuSerupa as $item)
@@ -287,6 +245,25 @@
                 </div>
             </div>
         </div>
-
     </div>
+
+    {{-- Script Klik Tombol Hapus --}}
+    <script>
+        function konfirmasiHapus(judul) {
+            Swal.fire({
+                title: 'Konfirmasi Hapus',
+                text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('form-hapus-buku').submit();
+                }
+            });
+        }
+    </script>
 </x-app-layout>
